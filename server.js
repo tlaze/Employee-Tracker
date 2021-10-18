@@ -101,15 +101,18 @@ const addNewEmployee = () =>{
             choices: chooseRole()
         },
         {
-            type: 'confirm',
-            message: "Are they a manager?",
-            name: 'manager'
+            type: 'list',
+            message: "Who is their manager?",
+            name: 'manager',
+            choices: chooseManager()
         }
     ])
     .then ((answer) => {
         console.log("Title: " + answer.role);
         let roleID = roleList.indexOf(answer.role) + 1;
         console.log(roleID);
+        let x = chooseManager(roleID);
+        console.log(x);
         initializeQuestions();
     });
 }
@@ -128,4 +131,10 @@ const chooseRole = () => {
         }
     });
     return roleList;
+}
+
+const managerList = [];
+const chooseManager = (id) =>{
+    
+    return managerList;
 }

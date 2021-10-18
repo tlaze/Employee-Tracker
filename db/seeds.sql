@@ -18,15 +18,13 @@ VALUES  ('Software Engineer', 100000, 1),
 
 
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
-VALUES  ('Codey', 'McMullen', 1, 4),
-        ('Codey', 'McMullen', 1, 4),
-        ('Codey', 'McMullen', 1, 4),
+VALUES  ('Codey', 'McMullen', 1, 2),
         ('Ken','Leedy', 2, NULL),
-        ('Kevin', 'Malone', 3, 6),
+        ('Kevin', 'Malone', 3, 4),
         ('Angela','Martin', 4, NULL),
-        ('Michael','Ross', 5, 8),
+        ('Michael','Ross', 5, 6),
         ('Harvey','Spector', 6, NULL),
-        ('Stanley','Hudson', 7, 10),
+        ('Stanley','Hudson', 7, 8),
         ('Jim','Halpert', 8, NULL);
 
 SELECT * FROM department;
