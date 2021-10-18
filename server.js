@@ -1,5 +1,6 @@
 const mysql = require('mysql2');
 const inquirer = require("inquirer");
+const table = require('console.table');
 
 const db = mysql.createConnection(
     {
@@ -61,7 +62,7 @@ const initializeQuestions = () =>{
         console.log(answer.option);
         switch(answer.option){
             case "View All Employees?":
-                testPrompts("View All Employees to test");
+                viewAllEmployees();
                 break;
             case "Add New Employee":
                 testPrompts("Add new to test");
@@ -87,7 +88,14 @@ const initializeQuestions = () =>{
 
 initializeQuestions();
 
-function testPrompts(answer){
-    console.log(answer);
-    initializeQuestions();
-}
+const viewAllEmployees = () =>{
+    db.query("SELECT * from employee", (err,results) => {
+        if(err){
+            console.error(err);
+        }
+        else{
+            console.table(results);
+            initializeQuestions();
+        }
+    }
+)};
