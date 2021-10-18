@@ -6,7 +6,7 @@ const db = mysql.createConnection(
     {
         host:'localhost',
         user: 'root',
-        password: 'root1234',
+        password: 'tommot247',//Change when back to windows
         database: 'employees_db'
     },
     console.log("Connected to the employees_db database.")
@@ -61,7 +61,17 @@ initializeQuestions();
 
 const viewAllEmployees = () =>{
     //See if you can alter the table column from name to department
-    db.query("SELECT employee.first_name, employee.last_name, roles.title, department.name, roles.salary FROM ((employee INNER JOIN roles ON employee.role_id = roles.id) INNER JOIN department ON department.id = roles.department_id);", (err,results) => {
+    db.query(`SELECT employee.first_name AS FirstName,
+                     employee.last_name AS LastName,
+                     roles.title AS Title,
+                     roles.salary AS Salary,
+                     department.name AS Department, 
+                     CONCAT(manager.first_name, ' ' , manager.last_name) AS Manager
+              FROM employee 
+              LEFT JOIN roles ON employee.role_id = roles.id 
+              LEFT JOIN department ON department.id = roles.department_id 
+              LEFT JOIN employee manager ON employee.manager_id = manager.id;
+    `, (err,results) => {
         if(err){
             console.error(err);
         }

@@ -18,16 +18,16 @@ VALUES  ('Software Engineer', 100000, 1),
 
 
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
-VALUES  ('Codey', 'McMullen', 1, NULL),
-        ('Codey', 'McMullen', 1, NULL),
-        ('Codey', 'McMullen', 1, NULL),
-        ('Ken','Leedy', 2, 1),
-        ('Kevin', 'Malone', 3, NULL),
-        ('Angela','Martin', 4, 2),
-        ('Michael','Ross', 5, NULL),
-        ('Harvey','Spector', 6, 3),
-        ('Stanley','Hudson', 7, NULL),
-        ('Jim','Halpert', 8, 4);
+VALUES  ('Codey', 'McMullen', 1, 4),
+        ('Codey', 'McMullen', 1, 4),
+        ('Codey', 'McMullen', 1, 4),
+        ('Ken','Leedy', 2, NULL),
+        ('Kevin', 'Malone', 3, 6),
+        ('Angela','Martin', 4, NULL),
+        ('Michael','Ross', 5, 8),
+        ('Harvey','Spector', 6, NULL),
+        ('Stanley','Hudson', 7, 10),
+        ('Jim','Halpert', 8, NULL);
 
 SELECT * FROM department;
 SELECT * FROM roles;
