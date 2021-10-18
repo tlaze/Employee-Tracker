@@ -117,7 +117,7 @@ const addNewEmployee = () =>{
         db.query(`
             INSERT INTO employee (first_name, last_name, role_id, manager_id)
             Values (?, ?, ?, ?)`, [answer.firstName, answer.lastName, roleID, managerID], 
-            function(err,res) {
+            function(err) {
                 if (err){
                     console.error(err);
                 }
@@ -127,8 +127,8 @@ const addNewEmployee = () =>{
         ${answer.firstName} ${answer.lastName} Is Now In The Employee Database!
 ---------------------------------------------------------------`);
                     initializeQuestions();
-                } 
-            });
+            } 
+        });
     });
 }
 
