@@ -16,7 +16,7 @@ const initializeQuestions = () =>{
     inquirer.prompt([
         {
             type: 'list',
-            message: 'What option would you like to choose?',
+            message: 'How would you like to update your Employees?',
             name: 'option',
             choices: [
                 "View All Employees?",
@@ -71,12 +71,16 @@ const viewAllEmployees = () =>{
               LEFT JOIN roles ON employee.role_id = roles.id 
               LEFT JOIN department ON department.id = roles.department_id 
               LEFT JOIN employee manager ON employee.manager_id = manager.id;
-    `, (err,results) => {
+    `, (err,res) => {
         if(err){
             console.error(err);
         }
         else{
-            console.table(results);
+            console.log(`
+---------------------------------------------------------------------------
+                            EMPLOYEE DATABASE
+---------------------------------------------------------------------------`);
+            console.table(res);
             initializeQuestions();
         }
     }
@@ -108,33 +112,94 @@ const addNewEmployee = () =>{
         }
     ])
     .then ((answer) => {
-        console.log("Title: " + answer.role);
-        let roleID = roleList.indexOf(answer.role) + 1;
-        console.log(roleID);
-        let x = chooseManager(roleID);
-        console.log(x);
-        initializeQuestions();
+        let roleID = getRoleID(answer.role);
+        let managerID = managerList.indexOf(answer.manager) + 1;
+        db.query(`
+            INSERT INTO employee (first_name, last_name, role_id, manager_id)
+            Values (?, ?, ?, ?)`, [answer.firstName, answer.lastName, roleID, managerID], 
+            function(err,res) {
+                if (err){
+                    console.error(err);
+                }
+                else{
+                    console.log(`
+---------------------------------------------------------------
+        ${answer.firstName} ${answer.lastName} Is Now In The Employee Database!
+---------------------------------------------------------------`);
+                    initializeQuestions();
+                } 
+            });
     });
 }
 
-const roleList = [];
 const chooseRole = () => {
+    const roleList = [];
     db.query("SELECT title FROM roles", (err, roles) => {
         if(err){
             console.error(err);
         }
         else{
-            for(var i = 0; i < roles.length; i++){
+            for(i = 0; i < roles.length; i++){
                 roleList.push(roles[i].title);
             }
-            roleList.push("Add New Role");
         }
     });
     return roleList;
 }
 
+const getRoleID = (name) => {
+    switch(name){
+        case "Software Engineer":
+            return 1;
+        case "Lead Engineer":
+            return 2;
+        case "Accountant":
+            return 3;
+        case "Account Manager":
+            return 4;
+        case "Lawyer":
+            return 5;
+        case "Legal Team Lead":
+            return 6;
+        case "Sales Person":
+            return 7;
+        case "Sales Lead":
+            return 8;
+    }
+}
+
 const managerList = [];
-const chooseManager = (id) =>{
-    
+const chooseManager = () => {
+    db.query("SELECT * FROM employee", (err, name) => {
+        if(err){
+            console.error(err);
+        }
+        else{
+            for(i = 0; i < name.length; i++){
+                managerList.push(`${name[i].first_name} ${name[i].last_name}`);
+            }
+        }
+    });
     return managerList;
+}
+
+const getManagerID = (name) => {
+    switch(name){
+        case "Software Engineer":
+            return 1;
+        case "Lead Engineer":
+            return 2;
+        case "Accountant":
+            return 3;
+        case "Account Manager":
+            return 4;
+        case "Lawyer":
+            return 5;
+        case "Legal Team Lead":
+            return 6;
+        case "Sales Person":
+            return 7;
+        case "Sales Lead":
+            return 8;
+    }
 }
