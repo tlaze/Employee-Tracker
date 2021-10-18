@@ -60,6 +60,7 @@ const initializeQuestions = () =>{
 initializeQuestions();
 
 const viewAllEmployees = () =>{
+    //See if you can alter the table column from name to department
     db.query("SELECT employee.first_name, employee.last_name, roles.title, department.name, roles.salary FROM ((employee INNER JOIN roles ON employee.role_id = roles.id) INNER JOIN department ON department.id = roles.department_id);", (err,results) => {
         if(err){
             console.error(err);
@@ -96,40 +97,15 @@ const addNewEmployee = () =>{
         }
     ])
     .then ((answer) => {
-        console.log("Role ID: " + answer.role);
-        let role_id = connectRole(answer.role);
-        console.log(role_id);
-        db.query(`INSERT INTO employee (${answer.firstName}, ${answer.lastName}, ${role_id}, NULL)`)
+        console.log("Title: " + answer.role);
+        let roleID = roleList.indexOf(answer.role) + 1;
+        console.log(roleID);
         initializeQuestions();
     });
 }
 
-// const connectRole = (role) =>{
-//     console.log("Connect Role: " + role);
-//     switch(role){
-//         case 1:
-//             return "Software Developer";
-//         case 2:
-//             return "Lead Engineer";
-//         case 3:
-//             return "Accountant";
-//         case 4:
-//             return "Account Manager";
-//         case 5:
-//             return "Lawyer";
-//         case 6:
-//             return "Legal Team Lead";
-//         case 7:
-//             return "Sales Person";
-//         case 8:
-//             return "Sales Lead";
-//         default:
-//             console.log("Not a Valid Role");    
-//     }
-// }
-
+const roleList = [];
 const chooseRole = () => {
-    let roleList = [];
     db.query("SELECT title FROM roles", (err, roles) => {
         if(err){
             console.error(err);
@@ -140,6 +116,6 @@ const chooseRole = () => {
             }
             roleList.push("Add New Role");
         }
-    })
+    });
     return roleList;
 }
