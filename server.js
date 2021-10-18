@@ -12,6 +12,7 @@ const db = mysql.createConnection(
     console.log("Connected to the employees_db database.")
 );
 
+
 const initializeQuestions = () =>{
     inquirer.prompt([
         {
@@ -30,7 +31,6 @@ const initializeQuestions = () =>{
         }
     ])
     .then ((answer) => {
-        console.log(answer.option);
         switch(answer.option){
             case "View All Employees?":
                 viewAllEmployees();
@@ -39,7 +39,7 @@ const initializeQuestions = () =>{
                 addNewEmployee();
                 break;
             case "Update Employee Role":
-                testPrompts("Update Role to test");
+                updateEmployeeRole();
                 break;    
             case "View All Roles":
                 testPrompts("View all roles to test");
@@ -57,11 +57,10 @@ const initializeQuestions = () =>{
     });
 }
 
-initializeQuestions();
-
 const viewAllEmployees = () =>{
     //See if you can alter the table column from name to department
-    db.query(`SELECT employee.first_name AS FirstName,
+    db.query(`SELECT employee.id,
+                     employee.first_name AS FirstName,
                      employee.last_name AS LastName,
                      roles.title AS Title,
                      roles.salary AS Salary,
@@ -77,9 +76,9 @@ const viewAllEmployees = () =>{
         }
         else{
             console.log(`
----------------------------------------------------------------------------
+-------------------------------------------------------------------------------
                             EMPLOYEE DATABASE
----------------------------------------------------------------------------`);
+-------------------------------------------------------------------------------`);
             console.table(res);
             initializeQuestions();
         }
@@ -108,12 +107,16 @@ const addNewEmployee = () =>{
             type: 'list',
             message: "Who is their manager?",
             name: 'manager',
-            choices: chooseManager()
+            choices: chooseEmployee()
         }
     ])
     .then ((answer) => {
-        let roleID = getRoleID(answer.role);
-        let managerID = managerList.indexOf(answer.manager) + 1;
+        let roleID = roleList.indexOf(answer.role) + 1;
+        let managerID = employeeList.indexOf(answer.manager) + 1;
+        console.log("MAnagerID: " + managerID);
+        if(answer.manager === 'This Employee is a Manager'){
+            managerID = null;
+        }
         db.query(`
             INSERT INTO employee (first_name, last_name, role_id, manager_id)
             Values (?, ?, ?, ?)`, [answer.firstName, answer.lastName, roleID, managerID], 
@@ -123,17 +126,18 @@ const addNewEmployee = () =>{
                 }
                 else{
                     console.log(`
----------------------------------------------------------------
-        ${answer.firstName} ${answer.lastName} Is Now In The Employee Database!
----------------------------------------------------------------`);
+------------------------------------------------------------------
+            ${answer.firstName} ${answer.lastName} Is Now In The Employee Database!
+------------------------------------------------------------------`);
                     initializeQuestions();
             } 
         });
     });
 }
 
+let roleList = [];
 const chooseRole = () => {
-    const roleList = [];
+    roleList = [];
     db.query("SELECT title FROM roles", (err, roles) => {
         if(err){
             console.error(err);
@@ -147,59 +151,83 @@ const chooseRole = () => {
     return roleList;
 }
 
-const getRoleID = (name) => {
-    switch(name){
-        case "Software Engineer":
-            return 1;
-        case "Lead Engineer":
-            return 2;
-        case "Accountant":
-            return 3;
-        case "Account Manager":
-            return 4;
-        case "Lawyer":
-            return 5;
-        case "Legal Team Lead":
-            return 6;
-        case "Sales Person":
-            return 7;
-        case "Sales Lead":
-            return 8;
-    }
-}
-
-const managerList = [];
-const chooseManager = () => {
+const chooseEmployee = () => {
+    employeeList = [];
     db.query("SELECT * FROM employee", (err, name) => {
         if(err){
             console.error(err);
         }
         else{
             for(i = 0; i < name.length; i++){
-                managerList.push(`${name[i].first_name} ${name[i].last_name}`);
+                employeeList.push(`${name[i].first_name} ${name[i].last_name}`);
             }
+            employeeList.push('This Employee is a Manager');
         }
     });
-    return managerList;
+    return employeeList;
 }
 
-const getManagerID = (name) => {
-    switch(name){
-        case "Software Engineer":
-            return 1;
-        case "Lead Engineer":
-            return 2;
-        case "Accountant":
-            return 3;
-        case "Account Manager":
-            return 4;
-        case "Lawyer":
-            return 5;
-        case "Legal Team Lead":
-            return 6;
-        case "Sales Person":
-            return 7;
-        case "Sales Lead":
-            return 8;
-    }
+const updateEmployeeRole = () => {
+    console.log(`
+---------------------------------------------------------------------
+                UPDATING EMPLOYEE ROLE
+---------------------------------------------------------------------`);
+    inquirer.prompt([
+        {
+            type: 'list',
+            message: "What is the Employee ID Number You Want To Update?",
+            name: 'ID',
+            choices: [1,2,3]
+        },
+        {
+            type: 'input',
+            message: "What is the Employee's First Name?",
+            name: 'firstName'
+        },
+        {
+            type: 'input',
+            message: "What is the Employee's Last Name?",
+            name: 'lastName'
+        },        {
+            type: 'list',
+            message: "What is the Employee's new Role?",
+            name: 'role',
+            choices: chooseRole()
+        },
+        {
+            type: 'list',
+            message: "Who is the Employee's manager?",
+            name: 'manager',
+            choices: chooseEmployee()
+        },
+    ])
+    .then((answer) => {
+        console.log(employeeList);
+        let roleID = roleList.indexOf(answer.role) + 1;
+        let managerID = employeeList.indexOf(answer.manager) + 1;
+        console.log("managerID: " + managerID);
+        console.log("answer: " + answer.manager);
+        db.query(`
+            UPDATE employee
+             SET first_name = "${answer.firstName}",
+                 last_name = "${answer.lastName}",
+                 role_id = "${roleID}",
+                 manager_id = "${managerID}"
+            WHERE id = "${answer.ID}"`); 
+            
+        console.log(`
+-------------------------------------------------------------------------------
+            ${answer.firstName} ${answer.lastName} Is Now Updated In The Employee Database!
+-------------------------------------------------------------------------------`);
+        initializeQuestions();
+    })
 }
+
+
+
+
+
+
+
+
+initializeQuestions();
