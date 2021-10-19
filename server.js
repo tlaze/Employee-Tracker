@@ -6,7 +6,7 @@ const db = mysql.createConnection(
     {
         host:'localhost',
         user: 'root',
-        password: 'tommot247',
+        password: 'root1234',
         database: 'employees_db'
     },
     console.log("Connected to the employees_db database.")
@@ -136,7 +136,6 @@ const addNewEmployee = () =>{
     });
 }
 
-let roleList = [];
 const chooseRole = () => {
     roleList = [];
     db.query("SELECT title FROM roles", (err, roles) => {
@@ -198,48 +197,37 @@ const updateEmployeeRole = () => {
             type: 'list',
             message: "Who is the Employee's manager?",
             name: 'manager',
-            choices: chooseManager()
+            choices: chooseEmployee()
         },
     ])
     .then((answer) => {
         let roleID = roleList.indexOf(answer.role) + 1;
-        console.log(answer.manager);
+        let managerID = employeeList.indexOf(answer.manager) + 1;
+        console.log(managerID);
+        console.log(employeeList);
         if(answer.manager === 'This Employee is a Manager'){
             managerID = null;
         }
+        // else if(`${answer.firstName} ${answer.lastName} === ${answer.manager}`){
+        //     managerID = null;
+        // }
         db.query(`
             UPDATE employee
             SET first_name = "${answer.firstName}",
                 last_name = "${answer.lastName}",
                 role_id = "${roleID}",
-                manager_id = "${answer.manager}"
+                manager_id = ${managerID}
             WHERE id = "${answer.ID}"`); 
             
         console.log(`
 -------------------------------------------------------------------------------
             ${answer.firstName} ${answer.lastName} Is Now Updated In The Employee Database!
 -------------------------------------------------------------------------------`);
+        
+        console.log(employeeList);
         initializeQuestions();
     })
 }
-let managerList = [];
-const chooseManager = () => {
-    managerList = [];
-    db.query(`SELECT * FROM employee`, (err,res) => {
-        if(err){
-            console.error(err);
-        }
-        else{
-            console.log(res);
-            for(i = 0; i < res.length; i++){
-                managerList.push(`${res[i].first_name} ${res[i].last_name}`);
-            }
-            managerList.push('This Employee is a Manager');
-        }
-    });
-    return managerList;
-}
-
 
 
 
