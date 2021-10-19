@@ -65,9 +65,9 @@ const viewAllEmployees = () =>{
                      roles.title AS Title,
                      roles.salary AS Salary,
                      department.name AS Department, 
-              CONCAT(manager.first_name, ' ' , manager.last_name) AS Manager
+              CONCAT(employees.first_name, ' ' , employees.last_name) AS Manager
               FROM employee 
-              LEFT JOIN employee manager ON employee.manager_id = manager.id
+              LEFT JOIN employee employees ON employee.manager_id = employees.id
               INNER JOIN roles ON employee.role_id = roles.id 
               INNER JOIN department ON roles.department_id = department.id
               ORDER BY employee.id;
@@ -154,6 +154,9 @@ const chooseRole = () => {
 const chooseEmployee = () => {
     employeeList = [];
     db.query("SELECT * FROM employee", (err, name) => {
+        // console.log('--------');
+        // console.table(name);
+        // console.log('--------');
         if(err){
             console.error(err);
         }
@@ -174,22 +177,24 @@ const updateEmployeeRole = () => {
 ---------------------------------------------------------------------`);
     inquirer.prompt([
         {
-            type: 'input',
-            message: "What is the Employee ID Number You Want To Update?",
+            type: 'list',
+            message: "What is the ID Number You Want To Update?",
             name: 'ID',
+            choices: [1,2,5]
         },
         {
             type: 'input',
-            message: "What is the Employee's First Name?",
+            message: "What is the New Employee's First Name?",
             name: 'firstName'
         },
         {
             type: 'input',
-            message: "What is the Employee's Last Name?",
+            message: "What is the New Employee's Last Name?",
             name: 'lastName'
-        },        {
+        },
+        {
             type: 'list',
-            message: "What is the Employee's new Role?",
+            message: "What is the Employee's New Role?",
             name: 'role',
             choices: chooseRole()
         },
@@ -202,9 +207,14 @@ const updateEmployeeRole = () => {
     ])
     .then((answer) => {
         let roleID = roleList.indexOf(answer.role) + 1;
-        let managerID = employeeList.indexOf(answer.manager) + 1;
-        console.log(managerID);
+        let managerID = employeeList.indexOf(answer.manager)+1;
+        console.log("ManagerID: " + managerID);
         console.log(employeeList);
+        console.log(employeeList.indexOf(answer.manager));
+        console.log(typeof managerID);
+
+        // if(managerID === employeeList[0].id)
+
         if(answer.manager === 'This Employee is a Manager'){
             managerID = null;
         }
@@ -217,15 +227,20 @@ const updateEmployeeRole = () => {
                 last_name = "${answer.lastName}",
                 role_id = "${roleID}",
                 manager_id = ${managerID}
-            WHERE id = "${answer.ID}"`); 
+            WHERE id = "${answer.ID}"`, (err,res) => {
+                if(err){
+                    console.error(err);
+                }
+                else{
+                    console.log(`
+            -------------------------------------------------------------------------------
+                        ${answer.firstName} ${answer.lastName} Is Now Updated In The Employee Database!
+            -------------------------------------------------------------------------------`);
+                    initializeQuestions();
+
+                }
+            }); 
             
-        console.log(`
--------------------------------------------------------------------------------
-            ${answer.firstName} ${answer.lastName} Is Now Updated In The Employee Database!
--------------------------------------------------------------------------------`);
-        
-        console.log(employeeList);
-        initializeQuestions();
     })
 }
 
