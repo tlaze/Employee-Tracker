@@ -6,7 +6,7 @@ const db = mysql.createConnection(
     {
         host:'localhost',
         user: 'root',
-        password: 'root1234',
+        password: 'tommot247',
         database: 'employees_db'
     },
     console.log("Connected to the employees_db database.")
@@ -65,11 +65,12 @@ const viewAllEmployees = () =>{
                      roles.title AS Title,
                      roles.salary AS Salary,
                      department.name AS Department, 
-                     CONCAT(manager.first_name, ' ' , manager.last_name) AS Manager
+              CONCAT(manager.first_name, ' ' , manager.last_name) AS Manager
               FROM employee 
-              LEFT JOIN roles ON employee.role_id = roles.id 
-              LEFT JOIN department ON department.id = roles.department_id 
-              LEFT JOIN employee manager ON employee.manager_id = manager.id;
+              LEFT JOIN employee manager ON employee.manager_id = manager.id
+              INNER JOIN roles ON employee.role_id = roles.id 
+              INNER JOIN department ON roles.department_id = department.id
+              ORDER BY employee.id;
     `, (err,res) => {
         if(err){
             console.error(err);
@@ -174,10 +175,9 @@ const updateEmployeeRole = () => {
 ---------------------------------------------------------------------`);
     inquirer.prompt([
         {
-            type: 'list',
+            type: 'input',
             message: "What is the Employee ID Number You Want To Update?",
             name: 'ID',
-            choices: [1,2,3]
         },
         {
             type: 'input',
@@ -198,21 +198,21 @@ const updateEmployeeRole = () => {
             type: 'list',
             message: "Who is the Employee's manager?",
             name: 'manager',
-            choices: chooseEmployee()
+            choices: chooseManager()
         },
     ])
     .then((answer) => {
-        console.log(employeeList);
         let roleID = roleList.indexOf(answer.role) + 1;
-        let managerID = employeeList.indexOf(answer.manager) + 1;
-        console.log("managerID: " + managerID);
-        console.log("answer: " + answer.manager);
+        console.log(answer.manager);
+        if(answer.manager === 'This Employee is a Manager'){
+            managerID = null;
+        }
         db.query(`
             UPDATE employee
-             SET first_name = "${answer.firstName}",
-                 last_name = "${answer.lastName}",
-                 role_id = "${roleID}",
-                 manager_id = "${managerID}"
+            SET first_name = "${answer.firstName}",
+                last_name = "${answer.lastName}",
+                role_id = "${roleID}",
+                manager_id = "${answer.manager}"
             WHERE id = "${answer.ID}"`); 
             
         console.log(`
@@ -221,6 +221,23 @@ const updateEmployeeRole = () => {
 -------------------------------------------------------------------------------`);
         initializeQuestions();
     })
+}
+let managerList = [];
+const chooseManager = () => {
+    managerList = [];
+    db.query(`SELECT * FROM employee`, (err,res) => {
+        if(err){
+            console.error(err);
+        }
+        else{
+            console.log(res);
+            for(i = 0; i < res.length; i++){
+                managerList.push(`${res[i].first_name} ${res[i].last_name}`);
+            }
+            managerList.push('This Employee is a Manager');
+        }
+    });
+    return managerList;
 }
 
 
