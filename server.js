@@ -1,6 +1,6 @@
 const mysql = require('mysql2');
 const inquirer = require("inquirer");
-const table = require('console.table');
+require('console.table');
 
 const db = mysql.createConnection(
     {
@@ -42,10 +42,10 @@ const initializeQuestions = () =>{
                 updateEmployeeRole();
                 break;    
             case "View All Roles":
-                testPrompts("View all roles to test");
+                viewAllRoles();
                 break;
             case "View All Departments":
-                testPrompts("View Departments to test");
+                viewAllDepartments();
                 break;
             case "Add New Department":
                 testPrompts("Add new Department to test");
@@ -130,7 +130,8 @@ const addNewEmployee = () =>{
                     console.log(`
 ------------------------------------------------------------------
             ${answer.firstName} ${answer.lastName} Is Now In The Employee Database!
-------------------------------------------------------------------`);
+------------------------------------------------------------------`
+                    );
                     initializeQuestions();
             } 
         });
@@ -170,11 +171,11 @@ const chooseEmployee = () => {
 
 const updateEmployeeRole = () => {
     console.log(`
----------------------------------------------------------------------
-                UPDATING EMPLOYEE ROLE
----------------------------------------------------------------------`);
+----------------------------------------
+    UPDATING EMPLOYEE ROLE
+----------------------------------------`
+    );
 
-    
     db.query(`  SELECT employee.id, employee.first_name AS FirstName, employee.last_name AS LastName FROM employee ORDER BY employee.id;`,(err,res) => {
         if(err){
             console.error(err);
@@ -183,9 +184,6 @@ const updateEmployeeRole = () => {
             console.table(res);
         }
     });
-
-
-
 
     db.query('SELECT * FROM employee', (err, res) => {
         if(err){
@@ -201,15 +199,8 @@ const updateEmployeeRole = () => {
                 return `${manager.first_name} ${manager.last_name}`;
             });
 
-            //Deletes the first index value. When choosing an updated manager the first choice is the previous employee input.
-            //Because the ID matched the managerID, the new employee entered would also display as manager instead of the name chosen.
-            //Since this deletes the first value, there is no issue anymore.
             managerArray.push('This Employee is a Manager');
-            console.log(managerArray);
-        
 
-        
-            
             inquirer.prompt([
                 {
                     type: 'list',
@@ -243,7 +234,6 @@ const updateEmployeeRole = () => {
             .then((answer) => {
                 console.log("answer ", answer);
         
-                // // employeeList.filter(answer.manager => employees.id != managerID);
                 let roleID = roleList.indexOf(answer.role) + 1;
                 let managerID = managerArray.indexOf(answer.manager) + 1;
                 console.log(managerID);
@@ -265,28 +255,55 @@ const updateEmployeeRole = () => {
                     }
                     else{
                         console.log(`
-                -------------------------------------------------------------------------------
-                            ${answer.firstName} ${answer.lastName} Is Now Updated In The Employee Database!
-                -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+        ${answer.firstName} ${answer.lastName} Is Now Updated In The Employee Database!
+-------------------------------------------------------------------------------
                 `);
                         console.table(res.employee);
                         initializeQuestions();
-    
                     }
-                }); 
-
-
-                
-            })
-            
+                });   
+            }) 
         }
-    
     });
 }
 
+const viewAllRoles = () => {
+    db.query(`SELECT id, roles.title AS Title, roles.salary As Salary FROM roles`, (err,role) => {
+        if(err){
+            console.error(err);
+        }
+        else{
+            console.log(`
+----------------------------------------
+    Current Positions At The Company
+----------------------------------------
+            `);
 
+            console.table(role);
+            initializeQuestions();
+        }
+    })
+}
 
+const viewAllDepartments =() => {
 
+    db.query(`SELECT id, department.name AS Name FROM department`, (err,dept) => {
+        if(err){
+            console.error(err);
+        }
+        else{
+            console.log(`
+----------------------------------------
+    Current Departments At The Company
+----------------------------------------
+            `);
+
+            console.table(dept);
+            initializeQuestions();
+        }
+    })
+}
 
 
 
