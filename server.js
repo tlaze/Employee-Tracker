@@ -1,7 +1,9 @@
+//Declares dependencies
 const mysql = require('mysql2');
 const inquirer = require("inquirer");
 require('console.table');
 
+//Creates connection with mysql
 const db = mysql.createConnection(
     {
         host:'localhost',
@@ -12,7 +14,7 @@ const db = mysql.createConnection(
     console.log("Connected to the employees_db database.")
 );
 
-
+//Starter function
 const init = () => {
     console.log(`
     ------------------------------------------------------------------------------
@@ -22,6 +24,7 @@ const init = () => {
     initializeQuestions();
 }
 
+//Prompts user how they would like to alter the database
 const initializeQuestions = () =>{
 
     inquirer.prompt([
@@ -41,6 +44,7 @@ const initializeQuestions = () =>{
             ]
         }
     ])
+    //User's choice results in different outcome
     .then ((answer) => {
         switch(answer.option){
             case "View All Departments":
@@ -71,7 +75,7 @@ const initializeQuestions = () =>{
     });
 }
 
-
+//Displays every Department in the department Table
 const viewAllDepartments = () => {
 
     db.query(`SELECT id, department.name AS Name FROM department`, (err,dept) => {
@@ -90,7 +94,7 @@ const viewAllDepartments = () => {
     })
 }
 
-
+//Displays every Role in the roles Table
 const viewAllRoles = () => {
     db.query(`SELECT roles.id,
                      roles.title AS Title,
@@ -116,9 +120,8 @@ const viewAllRoles = () => {
 }
 
 
-
+//Displays every Employee in the employee Table
 const viewAllEmployees = () =>{
-    //See if you can alter the table column from name to department
     db.query(`
     SELECT employee.id,
            employee.first_name AS FirstName,
@@ -148,7 +151,7 @@ const viewAllEmployees = () =>{
     }
 )};
 
-
+//Allows user to enter a new department into the database
 const addNewDepartment = () => {
     console.log(`
     ------------------------------------------------------------------------------
@@ -161,8 +164,8 @@ const addNewDepartment = () => {
             console.error(err);
         }
         else{
-
             console.table(dept);
+            //Prompts user for new department name
             inquirer.prompt([
                 {
                     type: 'input',
@@ -171,6 +174,7 @@ const addNewDepartment = () => {
                 },
             ])
             .then((answer) => {
+                //Makes a query to mysql to insert values into department Table
                 db.query(
                 `INSERT INTO department (name)VALUES (?)`, [answer.department]), (err) => {
                     if(err){
@@ -188,6 +192,7 @@ const addNewDepartment = () => {
     })
 }
 
+//Prompts the user to add a new Role to the roles Table
 const addNewRole = () => {
 
     console.log(`
@@ -205,6 +210,7 @@ const addNewRole = () => {
                 return `${department.name}`;
             });
 
+            //If the Roles's Department is not in the database yet, gives user ability to add it before continuing
             inquirer.prompt([
                 {
                     type: 'confirm',
@@ -217,7 +223,7 @@ const addNewRole = () => {
                     addNewDepartment();
                 }
                 else{
-
+                    //Prompts for new role's values
                     inquirer.prompt([
                         {
                             type: 'input',
@@ -237,7 +243,7 @@ const addNewRole = () => {
                         },
                     ])
                     .then((answer) => {
-                        let deptID = deptArray.indexOf(answer.department) + 1;
+                        let deptID = deptArray.indexOf(answer.department) + 1;  //deptArray contains all the roles in role Table. deptId matches the index value to the id value
                         db.query(`
                         INSERT INTO roles (title, salary, department_id)
                         Values (?, ?, ?)`, [answer.newRole, answer.salary, deptID], 
@@ -261,7 +267,7 @@ const addNewRole = () => {
     })
 }
 
-
+//Prompts user to add a new employe to the employee Table
 const addNewEmployee = () => {
 
     console.log(`
@@ -275,9 +281,11 @@ const addNewEmployee = () => {
             console.error(err);
         }
         else{
+            //Creates array of names in employee Table for choosing a manager name
             const employeeArray = name.map(function(emp) {
                 return `${emp.first_name} ${emp.last_name}`;
             });
+            //Adds choice for user to choose employee as a manager
             employeeArray.push('This Employee is a Manager');
 
             inquirer.prompt([
@@ -295,7 +303,7 @@ const addNewEmployee = () => {
                     type: 'list',
                     message: "What is the Employee's Role with this Company?",
                     name: 'role',
-                    choices: chooseRole()
+                    choices: chooseRole()//returns all the roles in roles Table to choose from
                 },
                 {
                     type: 'list',
@@ -305,8 +313,10 @@ const addNewEmployee = () => {
                 }
             ])
             .then ((answer) => {
-                let roleID = roleList.indexOf(answer.role) + 1;
-                let managerID = employeeArray.indexOf(answer.manager) + 1;
+                let roleID = roleList.indexOf(answer.role) + 1; //Gets id value for the new employee
+                let managerID = employeeArray.indexOf(answer.manager) + 1;  //Gets the index value for chosen manager name
+                
+                //If user chooses the new employee to be a manager, managerID returns null
                 if(answer.manager === 'This Employee is a Manager'){
                     managerID = null;
                 }
@@ -331,6 +341,7 @@ const addNewEmployee = () => {
     });
 }
 
+//Function used multiple times to display choices of roles available in roles Table
 const chooseRole = () => {
     roleList = [];
     db.query("SELECT title FROM roles", (err, roles) => {
@@ -346,7 +357,9 @@ const chooseRole = () => {
     return roleList;
 }
 
-
+//Changes the data at the row of the chosen ID
+//Known bug: If the selected Manager is located in the same employee ID number as their index value in managerArray
+//the new employee's name will be displayed instead of the chosen manager. 
 const updateEmployeeRole = () => {
     console.log(`
     ------------------------------------------------------------------------------
@@ -367,15 +380,15 @@ const updateEmployeeRole = () => {
             console.error(err);
         }
         else{
-
+            //Generates the ID's for prompting which row to change
             const idArray = res.map(function(i) {
                 return `${i.id}`;
             })
-
+            //Generates the manager choices for the updated employee
             const managerArray = res.map(function(manager) {
                 return `${manager.first_name} ${manager.last_name}`;
             });
-
+            //Gives option to have updated employee be a manager
             managerArray.push('This Employee is a Manager');
 
             inquirer.prompt([
@@ -441,7 +454,7 @@ const updateEmployeeRole = () => {
         }
     });
 }
-
+//Stops the program
 const quit = () => {
     console.log(`
     ---------------------------------------------
@@ -450,4 +463,5 @@ const quit = () => {
     `);
     process.exit();
 }
+//Starts the program
 init();
