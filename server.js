@@ -46,7 +46,7 @@ const initializeQuestions = () =>{
                 addNewDepartment();
                 break;
             case "Add New Role":
-                addnewRole();
+                addNewRole();
                 break;    
             case "Add New Employee":
                 addNewEmployee();
@@ -70,11 +70,9 @@ const viewAllDepartments = () => {
         }
         else{
             console.log(`
-----------------------------------------
-    Current Departments At The Company
-----------------------------------------
-            `);
-
+------------------------------------------------------------------------------
+    Current Departments In The Database
+------------------------------------------------------------------------------`);
             console.table(dept);
             initializeQuestions();
         }
@@ -96,11 +94,9 @@ const viewAllRoles = () => {
         }
         else{
             console.log(`
-----------------------------------------
-    Current Positions At The Company
-----------------------------------------
-            `);
-
+------------------------------------------------------------------------------
+    Current Positions In The Database
+------------------------------------------------------------------------------`);
             console.table(role);
             initializeQuestions();
         }
@@ -118,8 +114,7 @@ const viewAllEmployees = () =>{
                      department.name AS Department, 
                      roles.salary AS Salary,
               CONCAT(manager.first_name, ' ' , manager.last_name) AS Manager
-              FROM employee 
-              
+              FROM employee
               LEFT JOIN roles ON employee.role_id = roles.id 
               LEFT JOIN department ON roles.department_id = department.id
               LEFT JOIN employee manager ON manager.id = employee.manager_id
@@ -130,9 +125,9 @@ const viewAllEmployees = () =>{
         }
         else{
             console.log(`
--------------------------------------------------------------------------------
+------------------------------------------------------------------------------
                             EMPLOYEE DATABASE
--------------------------------------------------------------------------------`);
+------------------------------------------------------------------------------`);
             console.table(res);
             initializeQuestions();
         }
@@ -163,10 +158,9 @@ const addNewDepartment = () => {
                                 }
                             }
                             console.log(`
-----------------------------------------------------
+------------------------------------------------------------------------------
     ${answer.department} Added To Departments!
-----------------------------------------------------`
-                );
+------------------------------------------------------------------------------`);
                 initializeQuestions();          
             })                            
         }
@@ -174,7 +168,73 @@ const addNewDepartment = () => {
 }
 
 const addNewRole = () => {
-    console.log("add new role");
+
+    db.query(`SELECT * FROM department`, (err, dept) => {
+        if(err){
+            console.error(err);
+        }
+        else{
+            const deptArray = dept.map(function(department) {
+                return `${department.name}`;
+            });
+
+            inquirer.prompt([
+                {
+                    type: 'confirm',
+                    message: "Is this Role's Department in the database yet?",
+                    name: 'confirm'
+                },
+            ])
+            .then((response) => {
+                if(response.confirm === false){
+                    addNewDepartment();
+                }
+                else{
+
+                    inquirer.prompt([
+                        {
+                            type: 'input',
+                            message: "What is the name of Role you would like to add?",
+                            name: 'newRole'
+                        },
+                        {
+                            type: 'input',
+                            message: "What is the Salary of this Position?",
+                            name: 'salary'
+                        },
+                        {
+                            type: 'list',
+                            message: "What Department is this Role in?",
+                            name: 'department',
+                            choices: deptArray
+                        },
+                    ])
+                    .then((answer) => {
+                        console.log(answer);
+        
+                        let deptID = deptArray.indexOf(answer.department) + 1;
+                        console.log(deptID);
+                        db.query(`
+                        INSERT INTO roles (title, salary, department_id)
+                        Values (?, ?, ?)`, [answer.newRole, answer.salary, deptID], 
+                        function(err) {
+                            if (err){
+                                console.error(err);
+                            }
+                            else{
+                                console.log(`
+        ------------------------------------------------------------------------------
+                        ${answer.newRole} Is Now A Role In The Database!
+        ------------------------------------------------------------------------------`);
+                            initializeQuestions();
+                        } 
+                    });
+                    })
+                }
+            })
+
+        }
+    })
 }
 
 
@@ -185,7 +245,6 @@ const addNewEmployee = () => {
             console.error(err);
         }
         else{
-
             const employeeArray = name.map(function(emp) {
                 return `${emp.first_name} ${emp.last_name}`;
             });
@@ -218,7 +277,6 @@ const addNewEmployee = () => {
             .then ((answer) => {
                 let roleID = roleList.indexOf(answer.role) + 1;
                 let managerID = employeeArray.indexOf(answer.manager) + 1;
-                console.log("MAnagerID: " + managerID);
                 if(answer.manager === 'This Employee is a Manager'){
                     managerID = null;
                 }
@@ -231,11 +289,10 @@ const addNewEmployee = () => {
                         }
                         else{
                             console.log(`
-        ------------------------------------------------------------------
+------------------------------------------------------------------------------
                     ${answer.firstName} ${answer.lastName} Is Now In The Employee Database!
-        ------------------------------------------------------------------`
-                            );
-                            initializeQuestions();
+------------------------------------------------------------------------------`);
+                        initializeQuestions();
                     } 
                 });
             });
@@ -262,11 +319,9 @@ const chooseRole = () => {
 
 const updateEmployeeRole = () => {
     console.log(`
-----------------------------------------
+------------------------------------------------------------------------------
     UPDATING EMPLOYEE ROLE
-----------------------------------------`
-    );
-
+------------------------------------------------------------------------------`);
     db.query(`  SELECT employee.id, employee.first_name AS FirstName, employee.last_name AS LastName FROM employee ORDER BY employee.id;`,(err,res) => {
         if(err){
             console.error(err);
@@ -323,13 +378,10 @@ const updateEmployeeRole = () => {
                 },
             ])
             .then((answer) => {
-                console.log("answer ", answer);
         
                 let roleID = roleList.indexOf(answer.role) + 1;
                 let managerID = managerArray.indexOf(answer.manager) + 1;
-                console.log(managerID);
-                console.log(answer.manager);
-        
+
                 if(answer.manager === 'This Employee is a Manager'){
                     managerID = null;
                 }
@@ -346,10 +398,9 @@ const updateEmployeeRole = () => {
                     }
                     else{
                         console.log(`
--------------------------------------------------------------------------------
+------------------------------------------------------------------------------
         ${answer.firstName} ${answer.lastName} Is Now Updated In The Employee Database!
--------------------------------------------------------------------------------
-                `);
+------------------------------------------------------------------------------`);
                         console.table(res.employee);
                         initializeQuestions();
                     }
