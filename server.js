@@ -20,36 +20,40 @@ const initializeQuestions = () =>{
             message: 'How would you like to update your Employees?',
             name: 'option',
             choices: [
+                "View All Departments",
+                "View All Roles",
                 "View All Employees?",
+                "Add New Department",
+                "Add New Role",
                 "Add New Employee",
                 "Update Employee Role",
-                "View All Roles",
-                "View All Departments",
-                "Add New Department",
-                "Quit"
+                "Quit",
             ]
         }
     ])
     .then ((answer) => {
         switch(answer.option){
+            case "View All Departments":
+                viewAllDepartments();
+                break;
+            case "View All Roles":
+                viewAllRoles();
+                break;
             case "View All Employees?":
                 viewAllEmployees();
                 break;
+            case "Add New Department":
+                addNewDepartment();
+                break;
+            case "Add New Role":
+                addnewRole();
+                break;    
             case "Add New Employee":
                 addNewEmployee();
                 break;
             case "Update Employee Role":
                 updateEmployeeRole();
                 break;    
-            case "View All Roles":
-                viewAllRoles();
-                break;
-            case "View All Departments":
-                viewAllDepartments();
-                break;
-            case "Add New Department":
-                testPrompts("Add new Department to test");
-                break;
             case "Quit":
                 testPrompts("Quit to test");
                 break;                
@@ -57,14 +61,62 @@ const initializeQuestions = () =>{
     });
 }
 
+
+const viewAllDepartments = () => {
+
+    db.query(`SELECT id, department.name AS Name FROM department`, (err,dept) => {
+        if(err){
+            console.error(err);
+        }
+        else{
+            console.log(`
+----------------------------------------
+    Current Departments At The Company
+----------------------------------------
+            `);
+
+            console.table(dept);
+            initializeQuestions();
+        }
+    })
+}
+
+
+const viewAllRoles = () => {
+    db.query(`SELECT roles.id,
+                     roles.title AS Title,
+                     roles.department_id AS Department,
+                     roles.salary As Salary,
+                     department.name AS Department
+                     FROM roles
+                     LEFT JOIN department ON roles.department_id = department.id;
+                     `, (err,role) => {
+        if(err){
+            console.error(err);
+        }
+        else{
+            console.log(`
+----------------------------------------
+    Current Positions At The Company
+----------------------------------------
+            `);
+
+            console.table(role);
+            initializeQuestions();
+        }
+    })
+}
+
+
+
 const viewAllEmployees = () =>{
     //See if you can alter the table column from name to department
     db.query(`SELECT employee.id,
                      employee.first_name AS FirstName,
                      employee.last_name AS LastName,
                      roles.title AS Title,
-                     roles.salary AS Salary,
                      department.name AS Department, 
+                     roles.salary AS Salary,
               CONCAT(manager.first_name, ' ' , manager.last_name) AS Manager
               FROM employee 
               
@@ -87,54 +139,108 @@ const viewAllEmployees = () =>{
     }
 )};
 
-const addNewEmployee = () =>{
-    inquirer.prompt([
-        {
-            type: 'input',
-            message: "What is the Employee's First Name?",
-            name: 'firstName'
-        },
-        {
-            type: 'input',
-            message: "What is the Employee's Last Name?",
-            name: 'lastName'
-        },
-        {
-            type: 'list',
-            message: "What is the Employee's Role with this Company?",
-            name: 'role',
-            choices: chooseRole()
-        },
-        {
-            type: 'list',
-            message: "Who is their manager?",
-            name: 'manager',
-            choices: chooseEmployee()
+
+const addNewDepartment = () => {
+    db.query(`SELECT * FROM department`, (err, dept) => {
+        if(err){
+            console.error(err);
         }
-    ])
-    .then ((answer) => {
-        let roleID = roleList.indexOf(answer.role) + 1;
-        let managerID = employeeList.indexOf(answer.manager) + 1;
-        console.log("MAnagerID: " + managerID);
-        if(answer.manager === 'This Employee is a Manager'){
-            managerID = null;
+        else{
+
+            console.table(dept);
+            inquirer.prompt([
+                {
+                    type: 'input',
+                    message: "Whats The Name Of The New Department?",
+                    name: 'department',
+                },
+            ])
+            .then((answer) => {
+                db.query(`  INSERT INTO department (name)
+                            VALUES (?)`, [answer.department]), (err) =>{
+                                if(err){
+                                    console.error(err);
+                                }
+                            }
+                            console.log(`
+----------------------------------------------------
+    ${answer.department} Added To Departments!
+----------------------------------------------------`
+                );
+                initializeQuestions();          
+            })                            
         }
-        db.query(`
-            INSERT INTO employee (first_name, last_name, role_id, manager_id)
-            Values (?, ?, ?, ?)`, [answer.firstName, answer.lastName, roleID, managerID], 
-            function(err) {
-                if (err){
-                    console.error(err);
+    })
+}
+
+const addNewRole = () => {
+    console.log("add new role");
+}
+
+
+const addNewEmployee = () => {
+
+    db.query('SELECT * FROM employee', (err, name) => {
+        if(err){
+            console.error(err);
+        }
+        else{
+
+            const employeeArray = name.map(function(emp) {
+                return `${emp.first_name} ${emp.last_name}`;
+            });
+            employeeArray.push('This Employee is a Manager');
+
+            inquirer.prompt([
+                {
+                    type: 'input',
+                    message: "What is the Employee's First Name?",
+                    name: 'firstName'
+                },
+                {
+                    type: 'input',
+                    message: "What is the Employee's Last Name?",
+                    name: 'lastName'
+                },
+                {
+                    type: 'list',
+                    message: "What is the Employee's Role with this Company?",
+                    name: 'role',
+                    choices: chooseRole()
+                },
+                {
+                    type: 'list',
+                    message: "Who is their manager?",
+                    name: 'manager',
+                    choices: employeeArray
                 }
-                else{
-                    console.log(`
-------------------------------------------------------------------
-            ${answer.firstName} ${answer.lastName} Is Now In The Employee Database!
-------------------------------------------------------------------`
-                    );
-                    initializeQuestions();
-            } 
-        });
+            ])
+            .then ((answer) => {
+                let roleID = roleList.indexOf(answer.role) + 1;
+                let managerID = employeeArray.indexOf(answer.manager) + 1;
+                console.log("MAnagerID: " + managerID);
+                if(answer.manager === 'This Employee is a Manager'){
+                    managerID = null;
+                }
+                db.query(`
+                    INSERT INTO employee (first_name, last_name, role_id, manager_id)
+                    Values (?, ?, ?, ?)`, [answer.firstName, answer.lastName, roleID, managerID], 
+                    function(err) {
+                        if (err){
+                            console.error(err);
+                        }
+                        else{
+                            console.log(`
+        ------------------------------------------------------------------
+                    ${answer.firstName} ${answer.lastName} Is Now In The Employee Database!
+        ------------------------------------------------------------------`
+                            );
+                            initializeQuestions();
+                    } 
+                });
+            });
+
+        }
     });
 }
 
@@ -153,21 +259,6 @@ const chooseRole = () => {
     return roleList;
 }
 
-const chooseEmployee = () => {
-    employeeList = [];
-    employeeList.push('This Employee is a Manager');
-    db.query("SELECT * FROM employee", (err, name) => {
-        if(err){
-            console.error(err);
-        }
-        else{
-            for(i = 0; i < name.length; i++){
-                employeeList.push(`${name[i].first_name} ${name[i].last_name}`);
-            }
-        }
-    });
-    return employeeList;
-}
 
 const updateEmployeeRole = () => {
     console.log(`
@@ -268,42 +359,10 @@ const updateEmployeeRole = () => {
     });
 }
 
-const viewAllRoles = () => {
-    db.query(`SELECT id, roles.title AS Title, roles.salary As Salary FROM roles`, (err,role) => {
-        if(err){
-            console.error(err);
-        }
-        else{
-            console.log(`
-----------------------------------------
-    Current Positions At The Company
-----------------------------------------
-            `);
 
-            console.table(role);
-            initializeQuestions();
-        }
-    })
-}
 
-const viewAllDepartments =() => {
 
-    db.query(`SELECT id, department.name AS Name FROM department`, (err,dept) => {
-        if(err){
-            console.error(err);
-        }
-        else{
-            console.log(`
-----------------------------------------
-    Current Departments At The Company
-----------------------------------------
-            `);
 
-            console.table(dept);
-            initializeQuestions();
-        }
-    })
-}
 
 
 
