@@ -13,11 +13,21 @@ const db = mysql.createConnection(
 );
 
 
+const init = () => {
+    console.log(`
+    ------------------------------------------------------------------------------
+                WELCOME! VIEW OR MAKE CHANGES TO THE EMPLOYEE DATABASE
+    ------------------------------------------------------------------------------
+    `);
+    initializeQuestions();
+}
+
 const initializeQuestions = () =>{
+
     inquirer.prompt([
         {
             type: 'list',
-            message: 'How would you like to update your Employees?',
+            message: 'How would you like to update the Database?',
             name: 'option',
             choices: [
                 "View All Departments",
@@ -55,7 +65,7 @@ const initializeQuestions = () =>{
                 updateEmployeeRole();
                 break;    
             case "Quit":
-                testPrompts("Quit to test");
+                quit();
                 break;                
         }
     });
@@ -70,9 +80,10 @@ const viewAllDepartments = () => {
         }
         else{
             console.log(`
-------------------------------------------------------------------------------
-    Current Departments In The Database
-------------------------------------------------------------------------------`);
+            ------------------------------------------------------------------------------
+                                Current Departments In The Database
+            ------------------------------------------------------------------------------
+            `);
             console.table(dept);
             initializeQuestions();
         }
@@ -94,9 +105,10 @@ const viewAllRoles = () => {
         }
         else{
             console.log(`
-------------------------------------------------------------------------------
-    Current Positions In The Database
-------------------------------------------------------------------------------`);
+            ------------------------------------------------------------------------------
+                                Current Roles In The Database
+            ------------------------------------------------------------------------------
+            `);
             console.table(role);
             initializeQuestions();
         }
@@ -107,27 +119,29 @@ const viewAllRoles = () => {
 
 const viewAllEmployees = () =>{
     //See if you can alter the table column from name to department
-    db.query(`SELECT employee.id,
-                     employee.first_name AS FirstName,
-                     employee.last_name AS LastName,
-                     roles.title AS Title,
-                     department.name AS Department, 
-                     roles.salary AS Salary,
-              CONCAT(manager.first_name, ' ' , manager.last_name) AS Manager
-              FROM employee
-              LEFT JOIN roles ON employee.role_id = roles.id 
-              LEFT JOIN department ON roles.department_id = department.id
-              LEFT JOIN employee manager ON manager.id = employee.manager_id
-              ORDER BY employee.id;
+    db.query(`
+    SELECT employee.id,
+           employee.first_name AS FirstName,
+           employee.last_name AS LastName,
+           roles.title AS Title,
+           department.name AS Department, 
+           roles.salary AS Salary,
+    CONCAT(manager.first_name, ' ' , manager.last_name) AS Manager
+    FROM employee
+    LEFT JOIN roles ON employee.role_id = roles.id 
+    LEFT JOIN department ON roles.department_id = department.id
+    LEFT JOIN employee manager ON manager.id = employee.manager_id
+    ORDER BY employee.id;
     `,(err,res) => {
         if(err){
             console.error(err);
         }
         else{
             console.log(`
-------------------------------------------------------------------------------
-                            EMPLOYEE DATABASE
-------------------------------------------------------------------------------`);
+            ------------------------------------------------------------------------------
+                                            EMPLOYEE DATABASE
+            ------------------------------------------------------------------------------
+            `);
             console.table(res);
             initializeQuestions();
         }
@@ -136,6 +150,12 @@ const viewAllEmployees = () =>{
 
 
 const addNewDepartment = () => {
+    console.log(`
+    ------------------------------------------------------------------------------
+                        ADD New Department To The Database
+    ------------------------------------------------------------------------------
+    `);
+
     db.query(`SELECT * FROM department`, (err, dept) => {
         if(err){
             console.error(err);
@@ -151,16 +171,17 @@ const addNewDepartment = () => {
                 },
             ])
             .then((answer) => {
-                db.query(`  INSERT INTO department (name)
-                            VALUES (?)`, [answer.department]), (err) =>{
-                                if(err){
-                                    console.error(err);
-                                }
-                            }
-                            console.log(`
-------------------------------------------------------------------------------
-    ${answer.department} Added To Departments!
-------------------------------------------------------------------------------`);
+                db.query(
+                `INSERT INTO department (name)VALUES (?)`, [answer.department]), (err) => {
+                    if(err){
+                        console.error(err);
+                    }
+                }
+                console.log(`
+                ------------------------------------------------------------------------------
+                                ${answer.department} Added To Departments!
+                ------------------------------------------------------------------------------
+                `);
                 initializeQuestions();          
             })                            
         }
@@ -168,6 +189,12 @@ const addNewDepartment = () => {
 }
 
 const addNewRole = () => {
+
+    console.log(`
+    ------------------------------------------------------------------------------
+                        ADD New Role To The Database
+    ------------------------------------------------------------------------------
+    `);
 
     db.query(`SELECT * FROM department`, (err, dept) => {
         if(err){
@@ -210,10 +237,7 @@ const addNewRole = () => {
                         },
                     ])
                     .then((answer) => {
-                        console.log(answer);
-        
                         let deptID = deptArray.indexOf(answer.department) + 1;
-                        console.log(deptID);
                         db.query(`
                         INSERT INTO roles (title, salary, department_id)
                         Values (?, ?, ?)`, [answer.newRole, answer.salary, deptID], 
@@ -223,22 +247,28 @@ const addNewRole = () => {
                             }
                             else{
                                 console.log(`
-        ------------------------------------------------------------------------------
-                        ${answer.newRole} Is Now A Role In The Database!
-        ------------------------------------------------------------------------------`);
-                            initializeQuestions();
-                        } 
-                    });
+                                ------------------------------------------------------------------------------
+                                                ${answer.newRole} Is Now A Role In The Database!
+                                ------------------------------------------------------------------------------
+                                `);
+                                initializeQuestions();
+                            } 
+                        });
                     })
                 }
             })
-
         }
     })
 }
 
 
 const addNewEmployee = () => {
+
+    console.log(`
+    ------------------------------------------------------------------------------
+                        ADD New Employee To The Database
+    ------------------------------------------------------------------------------
+    `);
 
     db.query('SELECT * FROM employee', (err, name) => {
         if(err){
@@ -289,14 +319,14 @@ const addNewEmployee = () => {
                         }
                         else{
                             console.log(`
-------------------------------------------------------------------------------
-                    ${answer.firstName} ${answer.lastName} Is Now In The Employee Database!
-------------------------------------------------------------------------------`);
-                        initializeQuestions();
-                    } 
+                            ------------------------------------------------------------------------------
+                                ${answer.firstName} ${answer.lastName} Is Now In The Employee Database!
+                            ------------------------------------------------------------------------------
+                            `);
+                            initializeQuestions();
+                        } 
                 });
             });
-
         }
     });
 }
@@ -319,9 +349,10 @@ const chooseRole = () => {
 
 const updateEmployeeRole = () => {
     console.log(`
-------------------------------------------------------------------------------
-    UPDATING EMPLOYEE ROLE
-------------------------------------------------------------------------------`);
+    ------------------------------------------------------------------------------
+                                UPDATING EMPLOYEE's ROLE
+    ------------------------------------------------------------------------------
+    `);
     db.query(`  SELECT employee.id, employee.first_name AS FirstName, employee.last_name AS LastName FROM employee ORDER BY employee.id;`,(err,res) => {
         if(err){
             console.error(err);
@@ -398,9 +429,10 @@ const updateEmployeeRole = () => {
                     }
                     else{
                         console.log(`
-------------------------------------------------------------------------------
-        ${answer.firstName} ${answer.lastName} Is Now Updated In The Employee Database!
-------------------------------------------------------------------------------`);
+                        ------------------------------------------------------------------------------
+                        ${answer.firstName} ${answer.lastName} Is Now Updated In The Employee Database!
+                        ------------------------------------------------------------------------------`
+                        );
                         console.table(res.employee);
                         initializeQuestions();
                     }
@@ -410,11 +442,12 @@ const updateEmployeeRole = () => {
     });
 }
 
-
-
-
-
-
-
-
-initializeQuestions();
+const quit = () => {
+    console.log(`
+    ---------------------------------------------
+    Thank You For Using This Program. GoodBye!
+    ---------------------------------------------
+    `);
+    process.exit();
+}
+init();
