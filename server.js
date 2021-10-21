@@ -40,7 +40,7 @@ const initializeQuestions = () =>{
                 "Add New Role",
                 "Add New Employee",
                 "Update Employee Role",
-                "Delete Department",
+                // "Delete Department",
                 "Quit",
             ]
         }
@@ -69,9 +69,9 @@ const initializeQuestions = () =>{
             case "Update Employee Role":
                 updateEmployeeRole();
                 break; 
-            case "Delete Department":
-                deleteDepartment();
-                break;   
+            // case "Delete Department":
+            //     deleteDepartment();
+            //     break;   
             case "Quit":
                 quit();
                 break;                
@@ -260,9 +260,9 @@ const addNewRole = () => {
                                 }
                                 else{
                                     console.log(`
-                                    ------------------------------------------------------------------------------
-                                                    ${answer.newRole} Is Now A Role In The Database!
-                                    ------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------
+                    ${answer.newRole} Is Now A Role In The Database!
+    ------------------------------------------------------------------------------
                                     `);
                                     initializeQuestions();
                                     } 
@@ -290,11 +290,11 @@ const addNewEmployee = () => {
         }
         else{
             //Creates array of names in employee Table for choosing a manager name
-            const employeeArray = name.map(function(emp) {
-                return `${emp.first_name} ${emp.last_name}`;
-            });
+            const employeeArray = name.map(({ id, first_name, last_name }) => ({ name: first_name + " " + last_name, value: id}));
+
             //Adds choice for user to choose employee as a manager
             employeeArray.push('This Employee is a Manager');
+
 
             inquirer.prompt([
                 {
@@ -322,8 +322,8 @@ const addNewEmployee = () => {
             ])
             .then ((answer) => {
                 let roleID = roleList.indexOf(answer.role) + 1; //Gets id value for the new employee
-                let managerID = employeeArray.indexOf(answer.manager) + 1;  //Gets the index value for chosen manager name
-                
+                let managerID = answer.manager;  //Gets the index value for chosen manager name
+
                 //If user chooses the new employee to be a manager, managerID returns null
                 if(answer.manager === 'This Employee is a Manager'){
                     managerID = null;
@@ -414,9 +414,9 @@ const updateEmployeeRole = () => {
                     }
                     else{
                         console.log(`
-            ------------------------------------------------------------------------------
-                    ${displayedName.name}'s Role Is Updated In The Employee Database!
-            ------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------
+            ${displayedName.name}'s Role Is Updated In The Employee Database!
+    ------------------------------------------------------------------------------
                         `);
                         viewAllEmployees();
                     }
@@ -426,64 +426,61 @@ const updateEmployeeRole = () => {
     });
 }
     
-const deleteDepartment = () => {
-    console.log(`
-    ------------------------------------------------------------------------------
-                        DELETE Department From The Database
-    ------------------------------------------------------------------------------
-    `);
+// const deleteDepartment = () => {
+//     console.log(`
+//     ------------------------------------------------------------------------------
+//                         DELETE Department From The Database
+//     ------------------------------------------------------------------------------
+//     `);
 
-    db.query(`SELECT * From department`, (err, department) => {
-        if(err){
-            console.error(err);
-        }
-        else{
-            const deleteDept = department.map(({ name, id }) => ({ name: name, value: id}));
+//     db.query(`SELECT * From department`, (err, res) => {
+//         if(err){
+//             console.error(err);
+//         }
+//         else{
+//             const deleteDept = res.map(({ name, id }) => ({ name: name, value: id}));
 
-            if(deleteDept.length === 0){
-                console.log(`
-    ------------------------------------------------------------------------------
-                        No More Departments Left To Delete
-    ------------------------------------------------------------------------------
-                `);
-                initializeQuestions();
-            }
-            else{
+//             if(deleteDept.length === 0){
+//                 console.log(`
+//     ------------------------------------------------------------------------------
+//                         No More Departments Left To Delete
+//     ------------------------------------------------------------------------------
+//                 `);
+//                 initializeQuestions();
+//             }
+//             else{
 
-                //Prompts user for new department name
-                inquirer.prompt([
-                    {
-                        type: 'list',
-                        message: "What Department Would You Like To Delete?",
-                        name: 'department',
-                        choices: deleteDept
-                    },
-                ])
-                .then((answer) => {
-                    
-                    //Makes a query to mysql to delete values from department Table
-                    db.query(`
-                    Delete FROM department
-                    WHERE id = ${answer.department};`, (err,res) => {
-                        if(err){
-                            console.error(err);
-                        }
-                        else{
-                            console.log(`
-                            ------------------------------------------------------------------------------
-                                        ${answer.deleteDept} Is Now Deleted From The Database!
-                            ------------------------------------------------------------------------------`
-                            );
-                        initializeQuestions(); 
-                        }         
-                    });                         
-                })
-            }
-        }
-    });
-}
-
-
+//                 //Prompts user for new department name
+//                 inquirer.prompt([
+//                     {
+//                         type: 'list',
+//                         message: "What Department Would You Like To Delete?",
+//                         name: 'department',
+//                         choices: deleteDept
+//                     },
+//                 ])
+//                 .then((answer) => {
+//                     //Makes a query to mysql to delete values from department Table
+//                     db.query(`
+//                     Delete FROM department
+//                     WHERE id = ${answer.department};`, (err,res) => {
+//                         if(err){
+//                             console.error(err);
+//                         }
+//                         else{
+//                             console.log(`
+//     ------------------------------------------------------------------------------
+//                 DEPARTMENT Is Now Deleted From The Database!
+//     ------------------------------------------------------------------------------`
+//                             );
+//                         initializeQuestions(); 
+//                         }         
+//                     });                         
+//                 })
+//             }
+//         }
+//     });
+// }
 
 
 //Stops the program
