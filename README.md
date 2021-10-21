@@ -31,7 +31,11 @@
   
   ## Installation
 
-  To run this application properly, you need to install Node.js, NPM, MySql, and  Inquirer
+  To run this application properly, you need to install 
+  * Node.js 
+  * NPM 
+  * MySql
+  * Inquirer
   
 
   ## Usage
