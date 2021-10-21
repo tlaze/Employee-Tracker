@@ -27,7 +27,7 @@
 
   ## Description
 
-  This is a Content Management System Application that is run on the command line. The user inputs employee data into tables using MySql. The user is able to modify the data as well as add or delete values. 
+  This is a Content Management System Application that is run on the command line. After the user inputs employee data, tables are created using MySql to display and update data. The user is able to modify the data as well as add or delete values. 
   
   ## Installation
 
