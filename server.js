@@ -178,6 +178,14 @@ const addNewDepartment = () => {
                     type: 'input',
                     message: "Whats The Name Of The New Department?",
                     name: 'department',
+                    validate: function (string) {
+                        if(string === ''){
+                            return 'Enter a Valid Department Name.';
+                        }
+                        else{
+                            return true;
+                        }
+                    }
                 },
             ])
             .then((answer) => {
@@ -213,7 +221,7 @@ const addNewRole = () => {
             {
                 type: 'confirm',
                 message: "Is this Role's Department in the database yet?",
-                name: 'confirm'
+                name: 'confirm',
             },
         ])
         .then((response) => {
@@ -233,12 +241,28 @@ const addNewRole = () => {
                             {
                                 type: 'input',
                                 message: "What is the name of Role you would like to add?",
-                                name: 'newRole'
+                                name: 'newRole',
+                                validate: function (valid) {
+
+                                    if (valid === "") {
+                                        return 'Enter a Valid Response.';
+                                    } else {
+                                        return true;
+                                    }
+                                }
                             },
                             {
                                 type: 'input',
                                 message: "What is the Salary of this Position?",
-                                name: 'salary'
+                                name: 'salary',
+                                validate: function (number) {
+
+                                    if (isNaN(number) || number === '') {
+                                        return 'Enter a valid Salary"';
+                                    } else {
+                                        return true;
+                                    }
+                                }
                             },
                             {
                                 type: 'list',
@@ -300,12 +324,28 @@ const addNewEmployee = () => {
                 {
                     type: 'input',
                     message: "What is the Employee's First Name?",
-                    name: 'firstName'
+                    name: 'firstName',
+                    validate: function (string) {
+                        if(string === ''){
+                            return 'Enter a valid name.';
+                        }
+                        else{
+                            return true;
+                        }
+                    }
                 },
                 {
                     type: 'input',
                     message: "What is the Employee's Last Name?",
-                    name: 'lastName'
+                    name: 'lastName',
+                    validate: function (string) {
+                        if(string === ''){
+                            return 'Enter a valid name.';
+                        }
+                        else{
+                            return true;
+                        }
+                    }
                 },
                 {
                     type: 'list',
