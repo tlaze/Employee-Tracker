@@ -36,7 +36,11 @@
 
   ## Usage
   
-  * Clone from the GitHub Repository * Open the Command Line and navigate to project folder * Enter the command npm i * After all the packages download, Enter the command npm start * Follow the Prompts to input employee data
+  * Clone from the GitHub Repository 
+  * Open the Command Line and navigate to project folder
+  * Enter the command npm i
+  * After all the packages download, Enter the command npm start 
+  * Follow the Prompts to input employee data
   
   
   ## License
