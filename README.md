@@ -56,7 +56,7 @@
 
   ## ScreenShot
 
-  ![Screenshot](tl524/Desktop/Employee-Tracker/assets/images)
+  ![Screenshot](assets\images\table.png)
 
   ## Links
 
