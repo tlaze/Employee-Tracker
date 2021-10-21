@@ -56,7 +56,7 @@
 
   ## ScreenShot
 
-  ![Screenshot](assets\images\table.png)
+  ![Screenshot](assets/images/table.png)
 
   ## Links
 
