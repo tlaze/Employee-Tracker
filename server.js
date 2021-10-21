@@ -40,6 +40,7 @@ const initializeQuestions = () =>{
                 "Add New Role",
                 "Add New Employee",
                 "Update Employee Role",
+                "Delete Department",
                 "Quit",
             ]
         }
@@ -67,7 +68,10 @@ const initializeQuestions = () =>{
                 break;
             case "Update Employee Role":
                 updateEmployeeRole();
-                break;    
+                break; 
+            case "Delete Department":
+                deleteDepartment();
+                break;   
             case "Quit":
                 quit();
                 break;                
@@ -75,10 +79,13 @@ const initializeQuestions = () =>{
     });
 }
 
+
 //Displays every Department in the department Table
 const viewAllDepartments = () => {
 
-    db.query(`SELECT id, department.name AS Name FROM department`, (err,dept) => {
+    db.query(`SELECT id,
+              department.name AS Name
+              FROM department`, (err,dept) => {
         if(err){
             console.error(err);
         }
@@ -357,56 +364,34 @@ const chooseRole = () => {
     return roleList;
 }
 
-//Changes the data at the row of the chosen ID
-//Known bug: If the selected Manager is located in the same employee ID number as their index value in managerArray
-//the new employee's name will be displayed instead of the chosen manager. 
+//Changes the Role of employee at the row of the chosen ID
 const updateEmployeeRole = () => {
     console.log(`
     ------------------------------------------------------------------------------
                                 UPDATING EMPLOYEE's ROLE
     ------------------------------------------------------------------------------
     `);
-    db.query(`  SELECT employee.id, employee.first_name AS FirstName, employee.last_name AS LastName FROM employee ORDER BY employee.id;`,(err,res) => {
+
+    db.query(`SELECT employee.id,
+                     employee.first_name AS First_Name,
+                     employee.last_name AS Last_Name,
+                     roles.title As Title
+              FROM employee
+              INNER JOIN roles ON employee.role_id = roles.id;
+               `, (err, res) => {
         if(err){
             console.error(err);
         }
         else{
             console.table(res);
-        }
-    });
-
-    db.query('SELECT * FROM employee', (err, res) => {
-        if(err){
-            console.error(err);
-        }
-        else{
             //Generates the ID's for prompting which row to change
-            const idArray = res.map(function(i) {
-                return `${i.id}`;
-            })
-            //Generates the manager choices for the updated employee
-            const managerArray = res.map(function(manager) {
-                return `${manager.first_name} ${manager.last_name}`;
-            });
-            //Gives option to have updated employee be a manager
-            managerArray.push('This Employee is a Manager');
-
+            const employees = res.map(({ id, First_Name, Last_Name }) => ({ name: First_Name + " "+ Last_Name, value: id }));
             inquirer.prompt([
                 {
                     type: 'list',
-                    message: "What is the ID Number You Want To Update?",
+                    message: "Which Employee Would You Like To Update Their Role?",
                     name: 'ID',
-                    choices: idArray
-                },
-                {
-                    type: 'input',
-                    message: "What is the New Employee's First Name?",
-                    name: 'firstName'
-                },
-                {
-                    type: 'input',
-                    message: "What is the New Employee's Last Name?",
-                    name: 'lastName'
+                    choices: employees
                 },
                 {
                     type: 'list',
@@ -414,46 +399,88 @@ const updateEmployeeRole = () => {
                     name: 'role',
                     choices: chooseRole()
                 },
-                {
-                    type: 'list',
-                    message: "Who is the Employee's manager?",
-                    name: 'manager',
-                    choices: managerArray
-                },
             ])
             .then((answer) => {
-        
+                const displayedName = employees[answer.ID -1];
                 let roleID = roleList.indexOf(answer.role) + 1;
-                let managerID = managerArray.indexOf(answer.manager) + 1;
-
-                if(answer.manager === 'This Employee is a Manager'){
-                    managerID = null;
-                }
 
                 db.query(`
                 UPDATE employee
-                SET first_name = "${answer.firstName}",
-                    last_name = "${answer.lastName}",
-                    role_id = "${roleID}",
-                    manager_id = ${managerID}
-                WHERE id = "${answer.ID}"`, (err,res) => {
+                SET role_id = "${roleID}"
+                WHERE id = "${answer.ID}";`, (err,emp) => {
+                    if(err){
+                        console.error(err);
+                    }
+                    else{
+                        console.log(`
+            ------------------------------------------------------------------------------
+            ${displayedName.name}'s Role Is Updated In The Employee Database!
+            ------------------------------------------------------------------------------
+                        `);
+                        viewAllEmployees();
+                    }
+                });   
+            });
+        }
+    });
+}
+    
+const deleteDepartment = () => {
+    console.log(`
+    ------------------------------------------------------------------------------
+                        DELETE Department From The Database
+    ------------------------------------------------------------------------------
+    `);
+
+    db.query(`SELECT employee.id, 
+                     department.name
+            FROM department
+              `, (err, department) => {
+        if(err){
+            console.error(err);
+        }
+        else{
+            let deleteDept = department.map(function(dept) {
+                return `${dept.name}`;
+            })
+
+            //Prompts user for new department name
+            inquirer.prompt([
+                {
+                    type: 'list',
+                    message: "What Department Would You Like To Delete?",
+                    name: 'department',
+                    choices: deleteDept
+                },
+            ])
+            .then((answer) => {
+                console.log("Departments: " ,answer.department);
+                let deleteID = deleteDept.indexOf(answer.department);
+                console.log("Delete ID: " + deleteID);
+                //Makes a query to mysql to delete values from department Table
+                db.query(`
+                Delete FROM department
+                WHERE id = ${deleteID};`, (err,res) => {
                     if(err){
                         console.error(err);
                     }
                     else{
                         console.log(`
                         ------------------------------------------------------------------------------
-                        ${answer.firstName} ${answer.lastName} Is Now Updated In The Employee Database!
+                        ${answer.deleteDept} Is Now Deleted From The Database!
                         ------------------------------------------------------------------------------`
                         );
-                        console.table(res.employee);
-                        initializeQuestions();
-                    }
-                });   
-            }) 
+                    initializeQuestions(); 
+                    }         
+                });                         
+            })
         }
     });
 }
+
+
+
+
 //Stops the program
 const quit = () => {
     console.log(`
