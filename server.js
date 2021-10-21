@@ -91,9 +91,9 @@ const viewAllDepartments = () => {
         }
         else{
             console.log(`
-            ------------------------------------------------------------------------------
-                                Current Departments In The Database
-            ------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------
+                        Current Departments In The Database
+    ------------------------------------------------------------------------------
             `);
             console.table(dept);
             initializeQuestions();
@@ -116,9 +116,9 @@ const viewAllRoles = () => {
         }
         else{
             console.log(`
-            ------------------------------------------------------------------------------
-                                Current Roles In The Database
-            ------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------
+                        Current Roles In The Database
+    ------------------------------------------------------------------------------
             `);
             console.table(role);
             initializeQuestions();
@@ -148,9 +148,9 @@ const viewAllEmployees = () =>{
         }
         else{
             console.log(`
-            ------------------------------------------------------------------------------
-                                            EMPLOYEE DATABASE
-            ------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------
+                                    EMPLOYEE DATABASE
+    ------------------------------------------------------------------------------
             `);
             console.table(res);
             initializeQuestions();
@@ -189,9 +189,9 @@ const addNewDepartment = () => {
                     }
                 }
                 console.log(`
-                ------------------------------------------------------------------------------
-                                ${answer.department} Added To Departments!
-                ------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------
+                    ${answer.department} Added To Departments!
+    ------------------------------------------------------------------------------
                 `);
                 initializeQuestions();          
             })                            
@@ -208,71 +208,72 @@ const addNewRole = () => {
     ------------------------------------------------------------------------------
     `);
 
-    db.query(`SELECT * FROM department`, (err, dept) => {
-        if(err){
-            console.error(err);
-        }
-        else{
-            const deptArray = dept.map(function(department) {
-                return `${department.name}`;
-            });
+        //If the Roles's Department is not in the database yet, gives user ability to add it before continuing
+        inquirer.prompt([
+            {
+                type: 'confirm',
+                message: "Is this Role's Department in the database yet?",
+                name: 'confirm'
+            },
+        ])
+        .then((response) => {
+            if(response.confirm === false){
+                addNewDepartment();
+            }
+            else{
 
-            //If the Roles's Department is not in the database yet, gives user ability to add it before continuing
-            inquirer.prompt([
-                {
-                    type: 'confirm',
-                    message: "Is this Role's Department in the database yet?",
-                    name: 'confirm'
-                },
-            ])
-            .then((response) => {
-                if(response.confirm === false){
-                    addNewDepartment();
-                }
-                else{
-                    //Prompts for new role's values
-                    inquirer.prompt([
-                        {
-                            type: 'input',
-                            message: "What is the name of Role you would like to add?",
-                            name: 'newRole'
-                        },
-                        {
-                            type: 'input',
-                            message: "What is the Salary of this Position?",
-                            name: 'salary'
-                        },
-                        {
-                            type: 'list',
-                            message: "What Department is this Role in?",
-                            name: 'department',
-                            choices: deptArray
-                        },
-                    ])
-                    .then((answer) => {
-                        let deptID = deptArray.indexOf(answer.department) + 1;  //deptArray contains all the roles in role Table. deptId matches the index value to the id value
-                        db.query(`
-                        INSERT INTO roles (title, salary, department_id)
-                        Values (?, ?, ?)`, [answer.newRole, answer.salary, deptID], 
-                        function(err) {
-                            if (err){
-                                console.error(err);
-                            }
-                            else{
-                                console.log(`
-                                ------------------------------------------------------------------------------
-                                                ${answer.newRole} Is Now A Role In The Database!
-                                ------------------------------------------------------------------------------
-                                `);
-                                initializeQuestions();
-                            } 
-                        });
+                db.query(`SELECT * FROM department`, (err, dept) => {
+                    if(err){
+                        console.error(err);
+                    }
+                    else{
+                        const deptArray = dept.map(({ name, id }) => ({ name: name, value: id }));
+                        //Prompts for new role's values
+                        inquirer.prompt([
+                            {
+                                type: 'input',
+                                message: "What is the name of Role you would like to add?",
+                                name: 'newRole'
+                            },
+                            {
+                                type: 'input',
+                                message: "What is the Salary of this Position?",
+                                name: 'salary'
+                            },
+                            {
+                                type: 'list',
+                                message: "What Department is this Role in?",
+                                name: 'department',
+                                choices: deptArray
+                            },
+                        ])
+                        .then((answer) => {
+
+                            let deptID = answer.department;  //deptArray contains all the roles in role Table. deptId matches the index value to the id value
+
+                            db.query(`
+                            INSERT INTO roles (title, salary, department_id)
+                            Values (?, ?, ?)`, [answer.newRole, answer.salary, deptID], 
+                            function(err) {
+                                if (err){
+                                    console.error(err);
+                                }
+                                else{
+                                    console.log(`
+                                    ------------------------------------------------------------------------------
+                                                    ${answer.newRole} Is Now A Role In The Database!
+                                    ------------------------------------------------------------------------------
+                                    `);
+                                    initializeQuestions();
+                                    } 
+                                });
+                            })
+                        }
                     })
                 }
             })
         }
-    })
-}
+
 
 //Prompts user to add a new employe to the employee Table
 const addNewEmployee = () => {
@@ -414,7 +415,7 @@ const updateEmployeeRole = () => {
                     else{
                         console.log(`
             ------------------------------------------------------------------------------
-            ${displayedName.name}'s Role Is Updated In The Employee Database!
+                    ${displayedName.name}'s Role Is Updated In The Employee Database!
             ------------------------------------------------------------------------------
                         `);
                         viewAllEmployees();
@@ -432,48 +433,52 @@ const deleteDepartment = () => {
     ------------------------------------------------------------------------------
     `);
 
-    db.query(`SELECT employee.id, 
-                     department.name
-            FROM department
-              `, (err, department) => {
+    db.query(`SELECT * From department`, (err, department) => {
         if(err){
             console.error(err);
         }
         else{
-            let deleteDept = department.map(function(dept) {
-                return `${dept.name}`;
-            })
+            const deleteDept = department.map(({ name, id }) => ({ name: name, value: id}));
 
-            //Prompts user for new department name
-            inquirer.prompt([
-                {
-                    type: 'list',
-                    message: "What Department Would You Like To Delete?",
-                    name: 'department',
-                    choices: deleteDept
-                },
-            ])
-            .then((answer) => {
-                console.log("Departments: " ,answer.department);
-                let deleteID = deleteDept.indexOf(answer.department);
-                console.log("Delete ID: " + deleteID);
-                //Makes a query to mysql to delete values from department Table
-                db.query(`
-                Delete FROM department
-                WHERE id = ${deleteID};`, (err,res) => {
-                    if(err){
-                        console.error(err);
-                    }
-                    else{
-                        console.log(`
-                        ------------------------------------------------------------------------------
-                        ${answer.deleteDept} Is Now Deleted From The Database!
-                        ------------------------------------------------------------------------------`
-                        );
-                    initializeQuestions(); 
-                    }         
-                });                         
-            })
+            if(deleteDept.length === 0){
+                console.log(`
+    ------------------------------------------------------------------------------
+                        No More Departments Left To Delete
+    ------------------------------------------------------------------------------
+                `);
+                initializeQuestions();
+            }
+            else{
+
+                //Prompts user for new department name
+                inquirer.prompt([
+                    {
+                        type: 'list',
+                        message: "What Department Would You Like To Delete?",
+                        name: 'department',
+                        choices: deleteDept
+                    },
+                ])
+                .then((answer) => {
+                    
+                    //Makes a query to mysql to delete values from department Table
+                    db.query(`
+                    Delete FROM department
+                    WHERE id = ${answer.department};`, (err,res) => {
+                        if(err){
+                            console.error(err);
+                        }
+                        else{
+                            console.log(`
+                            ------------------------------------------------------------------------------
+                                        ${answer.deleteDept} Is Now Deleted From The Database!
+                            ------------------------------------------------------------------------------`
+                            );
+                        initializeQuestions(); 
+                        }         
+                    });                         
+                })
+            }
         }
     });
 }
@@ -484,9 +489,9 @@ const deleteDepartment = () => {
 //Stops the program
 const quit = () => {
     console.log(`
-    ---------------------------------------------
-    Thank You For Using This Program. GoodBye!
-    ---------------------------------------------
+    ------------------------------------------------------------------------------
+                    Thank You For Using This Program. GoodBye!
+    ------------------------------------------------------------------------------
     `);
     process.exit();
 }
