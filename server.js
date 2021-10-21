@@ -337,9 +337,9 @@ const addNewEmployee = () => {
                         }
                         else{
                             console.log(`
-                            ------------------------------------------------------------------------------
-                                ${answer.firstName} ${answer.lastName} Is Now In The Employee Database!
-                            ------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------
+        ${answer.firstName} ${answer.lastName} Is Now In The Employee Database!
+    ------------------------------------------------------------------------------
                             `);
                             initializeQuestions();
                         } 
