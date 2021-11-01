@@ -68,7 +68,7 @@
 
   ## Links
 
-  Live application: No Live Application for this Project
+  Video Walkthrough: https://drive.google.com/file/d/14Pu4p2aSdc36I4JdvaVQMrEevlJKx_Xu/view
 
   Project Repository: https://github.com/tlaze/Employee-Tracker
   
